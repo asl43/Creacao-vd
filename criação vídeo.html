@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Criador de Vídeo com Áudio</title>
+    <style>
+        :root {
+            --primary: #007bff;
+            --primary-dark: #0056b3;
+            --success: #28a745;
+            --success-dark: #1e7e34;
+            --danger: #dc3545;
+            --danger-dark: #c82333;
+            --info: #17a2b8;
+            --info-dark: #117a8b;
+            --bg-light: #f8f9fa;
+            --bg-dark: #343a40;
+            --text-dark: #212529;
+            --text-light: #f8f9fa;
+            --border-color: #dee2e6;
+            --card-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 8px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        p.lead {
+            color: #6c757d;
+            margin: 0 0 20px;
+            font-size: 1.1rem;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border-left: 4px solid var(--info);
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid var(--success);
+            color: #155724;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+        }
+        
+        .col {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .drop-area {
+            border: 2px dashed var(--border-color);
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 1rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .drop-area:hover, .drop-area.highlight {
+            border-color: var(--primary);
+            background-color: #e9f5ff;
+            color: var(--primary-dark);
+        }
+        
+        input[type=file] {
+            display: none;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background-color: #fff;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: none;
+            transition: all 0.2s ease-in-out;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        .btn-secondary:hover { background-color: var(--primary-dark); color: #fff; }
+
+        .btn-success {
+            background-color: var(--success);
+            color: #fff;
+        }
+        .btn-success:hover { background-color: var(--success-dark); }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover { background-color: var(--danger-dark); }
+        
+        .btn-disabled, .btn:disabled {
+            background-color: #adb5bd;
+            cursor: not-allowed;
+            color: #fff;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .log {
+            height: 200px;
+            overflow: auto;
+            margin-top: 15px;
+            background: #212529;
+            color: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .log .error { color: #dc3545; }
+        .log .success { color: #28a745; }
+        .log .warning { color: #ffc107; }
+        .log .info { color: #17a2b8; }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            transition: width 0.3s ease-in-out;
+        }
+        
+        .converted-files {
+            margin-top: 30px;
+        }
+
+        .converted-item {
+            padding: 15px;
+            background-color: #e2f9e4;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .converted-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .converted-name {
+            font-weight: 600;
+            color: var(--success-dark);
+        }
+
+        .converted-size {
+            font-size: 0.8rem;
+            color: var(--success-dark);
+        }
+
+        .converted-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .audio-creation, .video-creation {
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fcfcfc;
+        }
+
+        .audio-creation h3, .video-creation h3 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .audio-methods {
+            display: flex;
+            gap: 20px;
+        }
+
+        .audio-methods > div {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .audio-methods > div:hover {
+            border-color: var(--primary);
+            background-color: #e9f5ff;
+        }
+
+        #recordingStatus {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        #recordingStatus.recording { color: var(--danger); }
+        #recordingStatus .dot {
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        #videoCanvas {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #000;
+            max-width: 100%;
+        }
+
+        .video-settings {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Criador de Vídeo com Áudio</h1>
+        <p class="lead">Crie um vídeo combinando uma imagem com áudio - 100% no navegador!</p>
+
+        <div class="alert alert-info">
+            <strong>✨ Funciona sem bibliotecas externas!</strong> Esta versão usa apenas APIs nativas do navegador.
+        </div>
+
+        <div class="audio-creation">
+            <h3>🎵 Etapa 1: Criar ou Obter Áudio</h3>
+            <div class="audio-methods">
+                <div id="textToSpeechSection">
+                    <h4>🗣️ Gerar Áudio de Texto</h4>
+                    <div class="form-group">
+                        <label for="ttsText">Texto para converter:</label>
+                        <textarea id="ttsText" class="form-control" rows="4" placeholder="Digite seu texto aqui..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label for="ttsVoice">Voz:</label>
+                            <select id="ttsVoice" class="form-control">
+                                <option value="">Voz padrão</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="ttsRate">Velocidade:</label>
+                            <select id="ttsRate" class="form-control">
+                                <option value="0.7">Muito Lenta</option>
+                                <option value="0.9">Lenta</option>
+                                <option value="1" selected>Normal</option>
+                                <option value="1.2">Rápida</option>
+                                <option value="1.5">Muito Rápida</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="ttsPitch">Tom:</label>
+                            <select id="ttsPitch" class="form-control">
+                                <option value="0.5">Muito Baixo</option>
+                                <option value="0.75">Baixo</option>
+                                <option value="1" selected>Normal</option>
+                                <option value="1.25">Alto</option>
+                                <option value="1.5">Muito Alto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button id="playTTSBtn" class="btn btn-secondary btn-small">▶️ Testar</button>
+                </div>
+
+                <div id="audioRecordSection">
+                    <h4>🎙️ Gravar Áudio</h4>
+                    <p>Grave áudio diretamente do seu microfone.</p>
+                    <div id="recordingStatus"></div>
+                    <button id="startRecordBtn" class="btn btn-info btn-small">🔴 Gravar</button>
+                    <button id="stopRecordBtn" class="btn btn-danger btn-small" disabled>⏹️ Parar</button>
+                    <audio id="recordedAudio" controls style="width:100%; margin-top:10px;"></audio>
+                </div>
+
+                <div id="audioImportSection">
+                    <h4>📂 Importar Áudio</h4>
+                    <p>Importe um arquivo de áudio (.mp3, .wav, .ogg, etc.)</p>
+                    <div class="drop-area" id="audioDropArea">
+                        📁 Arraste e solte o áudio aqui, ou clique.
+                    </div>
+                    <input id="audioInput" type="file" accept="audio/*" />
+                </div>
+            </div>
+            <div id="selectedAudioInfo" style="margin-top:15px;"></div>
+            <audio id="selectedAudioPlayer" controls style="width:100%; margin-top:10px; display:none;"></audio>
+        </div>
+
+        <div class="video-creation">
+            <h3>🖼️ Etapa 2: Selecionar Imagem</h3>
+            <div class="row">
+                <div class="col">
+                    <label>Selecione uma imagem</label>
+                    <div class="drop-area" id="imageDropArea">
+                        🖼️ Arraste e solte a imagem aqui, ou clique para selecionar.
+                    </div>
+                    <input id="imageInput" type="file" accept="image/*" />
+                    <div id="selectedImageInfo" style="margin-top:15px;"></div>
+                </div>
+                <div class="col">
+                    <div id="imagePreview" style="max-width:100%; text-align:center; margin-top:15px; display:none;">
+                        <img id="previewImg" style="max-width:100%; max-height:300px; border-radius:8px; border:1px solid var(--border-color);" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-settings">
+                <h4>⚙️ Configurações do Vídeo</h4>
+                <div class="row">
+                    <div class="col">
+                        <label for="videoWidth">Largura:</label>
+                        <select id="videoWidth" class="form-control">
+                            <option value="640">640px (SD)</option>
+                            <option value="1280" selected>1280px (HD)</option>
+                            <option value="1920">1920px (Full HD)</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="videoHeight">Altura:</label>
+                        <select id="videoHeight" class="form-control">
+                            <option value="480">480px (SD)</option>
+                            <option value="720" selected>720px (HD)</option>
+                            <option value="1080">1080px (Full HD)</option>
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="videoFps">FPS:</label>
+                        <select id="videoFps" class="form-control">
+                            <option value="24">24 fps</option>
+                            <option value="30" selected>30 fps</option>
+                            <option value="60">60 fps</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="processBtn" class="btn btn-primary" disabled>🎬 Criar Vídeo</button>
+            <button id="clearBtn" class="btn btn-danger">🗑️ Limpar Tudo</button>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <label>📋 Status e Registros</label>
+                <div class="log" id="log"></div>
+            </div>
+            <div class="col">
+                <div style="margin-top:20px">
+                    <label>⏳ Progresso da Criação</label>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                    </div>
+                    <div id="progressText" style="font-size:0.85rem;color:#6c757d">Aguardando...</div>
+                </div>
+                <div class="converted-files" id="convertedFiles" style="display:none">
+                    <h3>🎉 Vídeo Criado</h3>
+                    <div id="convertedList"></div>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="videoCanvas" style="display:none;"></canvas>
+    </div>
+
+    <script>
+        let selectedAudioFile = null;
+        let selectedImageFile = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let videoRecorder = null;
+        let canvasContext = null;
+
+        const elements = {
+            log: document.getElementById('log'),
+            progressFill: document.getElementById('progressFill'),
+            progressText: document.getElementById('progressText'),
+            convertedFiles: document.getElementById('convertedFiles'),
+            convertedList: document.getElementById('convertedList'),
+            
+            // TTS
+            ttsText: document.getElementById('ttsText'),
+            ttsVoice: document.getElementById('ttsVoice'),
+            ttsRate: document.getElementById('ttsRate'),
+            ttsPitch: document.getElementById('ttsPitch'),
+            playTTSBtn: document.getElementById('playTTSBtn'),
+
+            // Record
+            startRecordBtn: document.getElementById('startRecordBtn'),
+            stopRecordBtn: document.getElementById('stopRecordBtn'),
+            recordingStatus: document.getElementById('recordingStatus'),
+            recordedAudio: document.getElementById('recordedAudio'),
+
+            // File selectors
+            audioDropArea: document.getElementById('audioDropArea'),
+            audioInput: document.getElementById('audioInput'),
+            imageDropArea: document.getElementById('imageDropArea'),
+            imageInput: document.getElementById('imageInput'),
+            selectedAudioInfo: document.getElementById('selectedAudioInfo'),
+            selectedAudioPlayer: document.getElementById('selectedAudioPlayer'),
+            selectedImageInfo: document.getElementById('selectedImageInfo'),
+            imagePreview: document.getElementById('imagePreview'),
+            previewImg: document.getElementById('previewImg'),
+            
+            // Video settings
+            videoWidth: document.getElementById('videoWidth'),
+            videoHeight: document.getElementById('videoHeight'),
+            videoFps: document.getElementById('videoFps'),
+            videoCanvas: document.getElementById('videoCanvas'),
+            
+            // Controls
+            processBtn: document.getElementById('processBtn'),
+            clearBtn: document.getElementById('clearBtn')
+        };
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<span style="opacity:0.7">[${time}]</span> ${msg}`;
+            elements.log.appendChild(div);
+            elements.log.scrollTop = elements.log.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${msg}`);
+        }
+
+        function setProgress(percent, text) {
+            elements.progressFill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+            elements.progressText.textContent = text;
+        }
+
+        function updateUI() {
+            if (selectedAudioFile) {
+                elements.selectedAudioInfo.innerHTML = `<div class="alert alert-success"><strong>🎵 Áudio Selecionado:</strong> ${selectedAudioFile.name} (${(selectedAudioFile.size / 1024 / 1024).toFixed(2)} MB)</div>`;
+                elements.selectedAudioPlayer.src = URL.createObjectURL(selectedAudioFile);
+                elements.selectedAudioPlayer.style.display = 'block';
+            } else {
+                elements.selectedAudioInfo.innerHTML = '';
+                elements.selectedAudioPlayer.style.display = 'none';
+            }
+
+            if (selectedImageFile) {
+                elements.selectedImageInfo.innerHTML = `<div class="alert alert-success"><strong>🖼️ Imagem Selecionada:</strong> ${selectedImageFile.name} (${(selectedImageFile.size / 1024 / 1024).toFixed(2)} MB)</div>`;
+                elements.imagePreview.style.display = 'block';
+                elements.previewImg.src = URL.createObjectURL(selectedImageFile);
+            } else {
+                elements.selectedImageInfo.innerHTML = '';
+                elements.imagePreview.style.display = 'none';
+                elements.previewImg.src = '';
+            }
+            
+            elements.processBtn.disabled = !(selectedAudioFile && selectedImageFile);
+        }
+
+        // Carregar vozes disponíveis para TTS, categorizando-as
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            const ttsVoiceSelect = elements.ttsVoice;
+            ttsVoiceSelect.innerHTML = '<option value="">Voz padrão do sistema</option>';
+            
+            const femaleVoices = voices.filter(v => v.lang.startsWith('pt') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('fêmea') || v.name.toLowerCase().includes('feminina') || v.name.toLowerCase().includes('helena')));
+            const maleVoices = voices.filter(v => v.lang.startsWith('pt') && (v.name.toLowerCase().includes('male') || v.name.toLowerCase().includes('macho') || v.name.toLowerCase().includes('masculina') || v.name.toLowerCase().includes('carlos')));
+            const otherVoices = voices.filter(v => v.lang.startsWith('pt') && !femaleVoices.includes(v) && !maleVoices.includes(v));
+
+            function addVoiceOptions(voiceList, label) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = label;
+                voiceList.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = voice.name;
+                    option.textContent = voice.name;
+                    optgroup.appendChild(option);
+                });
+                if (voiceList.length > 0) {
+                    ttsVoiceSelect.appendChild(optgroup);
+                }
+            }
+
+            addVoiceOptions(femaleVoices, 'Vozes Femininas (Português)');
+            addVoiceOptions(maleVoices, 'Vozes Masculinas (Português)');
+            addVoiceOptions(otherVoices, 'Outras Vozes (Português)');
+            
+            log(`${voices.length} vozes carregadas para síntese de fala.`, 'info');
+        }
+
+        // TTS usando Web Speech API
+        function playTTS() {
+            const text = elements.ttsText.value.trim();
+            if (!text) {
+                log('Digite um texto para reproduzir.', 'warning');
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = speechSynthesis.getVoices();
+            
+            if (elements.ttsVoice.value) {
+                utterance.voice = voices.find(voice => voice.name === elements.ttsVoice.value);
+            }
+            
+            utterance.rate = parseFloat(elements.ttsRate.value);
+            utterance.pitch = parseFloat(elements.ttsPitch.value);
+
+            utterance.onstart = () => log('Reproduzindo áudio do texto...', 'info');
+            utterance.onend = () => log('Reprodução finalizada.', 'success');
+            utterance.onerror = (error) => log(`Erro na reprodução: ${error.error}`, 'error');
+
+            speechSynthesis.speak(utterance);
+        }
+
+        async function createVideo() {
+            if (!selectedAudioFile || !selectedImageFile) {
+                log('Por favor, selecione uma imagem e um áudio primeiro.', 'warning');
+                return;
+            }
+
+            elements.processBtn.disabled = true;
+            elements.clearBtn.disabled = true;
+            log('🎬 Iniciando criação do vídeo...', 'info');
+            setProgress(0, 'Preparando...');
+
+            try {
+                const width = parseInt(elements.videoWidth.value);
+                const height = parseInt(elements.videoHeight.value);
+                const fps = parseInt(elements.videoFps.value);
+
+                // Configurar canvas
+                elements.videoCanvas.width = width;
+                elements.videoCanvas.height = height;
+                canvasContext = elements.videoCanvas.getContext('2d');
+
+                setProgress(10, 'Carregando imagem...');
+
+                // Carregar e desenhar imagem
+                const img = new Image();
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = URL.createObjectURL(selectedImageFile);
+                });
+
+                setProgress(30, 'Configurando gravação...');
+
+                // Criar stream do canvas
+                const canvasStream = elements.videoCanvas.captureStream(fps);
+                
+                // Carregar áudio
+                const audioContext = new AudioContext();
+                const audioBuffer = await audioContext.decodeAudioData(await selectedAudioFile.arrayBuffer());
+                const audioDuration = audioBuffer.duration;
+
+                // Criar stream de áudio
+                const audioSource = audioContext.createBufferSource();
+                audioSource.buffer = audioBuffer;
+                
+                const destination = audioContext.createMediaStreamDestination();
+                audioSource.connect(destination);
+
+                // Combinar streams
+                const combinedStream = new MediaStream([
+                    ...canvasStream.getVideoTracks(),
+                    ...destination.stream.getAudioTracks()
+                ]);
+
+                setProgress(50, 'Iniciando gravação do vídeo...');
+
+                // Configurar gravação
+                const chunks = [];
+                videoRecorder = new MediaRecorder(combinedStream, {
+                    mimeType: 'video/webm;codecs=vp9,opus'
+                });
+
+                videoRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data);
+                    }
+                };
+
+                videoRecorder.onstop = () => {
+                    const videoBlob = new Blob(chunks, { type: 'video/webm' });
+                    const videoUrl = URL.createObjectURL(videoBlob);
+                    
+                    elements.convertedFiles.style.display = 'block';
+                    elements.convertedList.innerHTML = `
+                        <div class="converted-item">
+                            <div class="converted-header">
+                                <span class="converted-name">video_${Date.now()}.webm</span>
+                                <span class="converted-size">${(videoBlob.size / 1024 / 1024).toFixed(2)} MB</span>
+                            </div>
+                            <div class="converted-controls">
+                                <video controls src="${videoUrl}" style="width:100%; margin-bottom:10px; border-radius:8px;"></video>
+                                <a href="${videoUrl}" download="video_${Date.now()}.webm" class="btn btn-primary btn-small">📥 Download WebM</a>
+                            </div>
+                        </div>
+                    `;
+
+                    setProgress(100, '✅ Vídeo criado com sucesso!');
+                    log('🎉 Vídeo criado e pronto para download!', 'success');
+                    
+                    elements.processBtn.disabled = false;
+                    elements.clearBtn.disabled = false;
+                };
+
+                // Função para desenhar frame
+                function drawFrame() {
+                    // Limpar canvas
+                    canvasContext.fillStyle = '#000000';
+                    canvasContext.fillRect(0, 0, width, height);
+
+                    // Calcular proporções para manter aspect ratio
+                    const imgAspect = img.width / img.height;
+                    const canvasAspect = width / height;
+                    
+                    let drawWidth, drawHeight, offsetX, offsetY;
+                    
+                    if (imgAspect > canvasAspect) {
+                        drawWidth = width;
+                        drawHeight = width / imgAspect;
+                        offsetX = 0;
+                        offsetY = (height - drawHeight) / 2;
+                    } else {
+                        drawWidth = height * imgAspect;
+                        drawHeight = height;
+                        offsetX = (width - drawWidth) / 2;
+                        offsetY = 0;
+                    }
+
+                    canvasContext.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+                }
+
+                // Começar gravação
+                videoRecorder.start();
+                audioSource.start();
+
+                setProgress(70, 'Gravando vídeo...');
+
+                // Desenhar frames durante a duração do áudio
+                const frameInterval = 1000 / fps;
+                let frameCount = 0;
+                const totalFrames = Math.ceil(audioDuration * fps);
+
+                const frameTimer = setInterval(() => {
+                    drawFrame();
+                    frameCount++;
+                    
+                    const progress = 70 + (frameCount / totalFrames) * 20;
+                    setProgress(progress, `Gravando frame ${frameCount}/${totalFrames}...`);
+
+                    if (frameCount >= totalFrames) {
+                        clearInterval(frameTimer);
+                        setTimeout(() => {
+                            videoRecorder.stop();
+                            audioSource.stop();
+                        }, 100);
+                    }
+                }, frameInterval);
+
+            } catch (error) {
+                log(`❌ Erro ao criar vídeo: ${error.message}`, 'error');
+                setProgress(0, 'Erro na criação');
+                elements.processBtn.disabled = false;
+                elements.clearBtn.disabled = false;
+            }
+        }
+
+        // Event Listeners
+
+        // TTS
+        elements.playTTSBtn.addEventListener('click', playTTS);
+
+        // Gravação
+        elements.startRecordBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                
+                elements.recordingStatus.innerHTML = '<span class="dot"></span> Gravando...';
+                elements.recordingStatus.classList.add('recording');
+                elements.startRecordBtn.disabled = true;
+                elements.stopRecordBtn.disabled = false;
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    elements.recordingStatus.innerHTML = '✅ Gravação finalizada.';
+                    elements.recordingStatus.classList.remove('recording');
+                    
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    elements.recordedAudio.src = audioUrl;
+                    
+                    selectedAudioFile = new File([audioBlob], `gravacao_${Date.now()}.webm`, { type: 'audio/webm' });
+                    
+                    log('Gravação salva. Agora você pode criar o vídeo!', 'success');
+                    updateUI();
+
+                    stream.getTracks().forEach(track => track.stop());
+                };
+
+                mediaRecorder.start();
+                log('Gravação iniciada...', 'info');
+            } catch (err) {
+                log(`❌ Erro ao acessar o microfone: ${err.message}`, 'error');
+            }
+        });
+
+        elements.stopRecordBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+        });
+
+        // Seleção de Arquivos
+        elements.audioDropArea.addEventListener('click', () => elements.audioInput.click());
+        elements.audioInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                selectedAudioFile = e.target.files[0];
+                log(`🎵 Áudio importado: ${selectedAudioFile.name}`, 'success');
+                updateUI();
+            }
+        });
+
+        elements.imageDropArea.addEventListener('click', () => elements.imageInput.click());
+        elements.imageInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                selectedImageFile = e.target.files[0];
+                log(`🖼️ Imagem importada: ${selectedImageFile.name}`, 'success');
+                updateUI();
+            }
+        });
+
+        // Drag and Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            elements.audioDropArea.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); });
+            elements.imageDropArea.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); });
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            elements.audioDropArea.addEventListener(eventName, () => elements.audioDropArea.classList.add('highlight'));
+            elements.imageDropArea.addEventListener(eventName, () => elements.imageDropArea.classList.add('highlight'));
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            elements.audioDropArea.addEventListener(eventName, () => elements.audioDropArea.classList.remove('highlight'));
+            elements.imageDropArea.addEventListener(eventName, () => elements.imageDropArea.classList.remove('highlight'));
+        });
+
+        elements.audioDropArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedAudioFile = files[0];
+                log(`🎵 Áudio importado: ${selectedAudioFile.name}`, 'success');
+                updateUI();
+            }
+        });
+
+        elements.imageDropArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                selectedImageFile = files[0];
+                log(`🖼️ Imagem importada: ${selectedImageFile.name}`, 'success');
+                updateUI();
+            }
+        });
+
+        // Botões de controle
+        elements.processBtn.addEventListener('click', createVideo);
+        
+        elements.clearBtn.addEventListener('click', () => {
+            selectedAudioFile = null;
+            selectedImageFile = null;
+            elements.ttsText.value = '';
+            elements.recordedAudio.src = '';
+            elements.audioInput.value = '';
+            elements.imageInput.value = '';
+            elements.startRecordBtn.disabled = false;
+            elements.stopRecordBtn.disabled = true;
+            elements.convertedFiles.style.display = 'none';
+            elements.convertedList.innerHTML = '';
+            elements.recordingStatus.innerHTML = '';
+            elements.recordingStatus.classList.remove('recording');
+            setProgress(0, 'Aguardando...');
+            log('🗑️ Todos os arquivos e configurações foram limpos.', 'info');
+            updateUI();
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Aplicação iniciada. Siga os passos para criar seu vídeo.', 'info');
+            updateUI();
+            if ('speechSynthesis' in window) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+                loadVoices();
+            } else {
+                log('Síntese de fala não suportada neste navegador.', 'warning');
+                elements.textToSpeechSection.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
